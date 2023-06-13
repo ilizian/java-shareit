@@ -1,4 +1,4 @@
-package ru.practicum.shareit.user;
+package ru.practicum.shareit.user.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,8 +13,8 @@ import javax.validation.constraints.NotNull;
 @AllArgsConstructor
 public class User {
     private Long id;
-    @NotNull
+    @NotNull(message = "Неправильное имя")
     private String name;
-    @Email
+    @Email(message = "Неправильный email")
     private String email;
 }
