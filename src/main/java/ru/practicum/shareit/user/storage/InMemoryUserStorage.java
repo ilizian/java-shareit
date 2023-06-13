@@ -56,7 +56,7 @@ public class InMemoryUserStorage implements UserStorage {
         users.remove(userId);
     }
 
-    private void checkUser(User user) throws ValidationException {
+    private void checkUser(User user) throws ValidationException, ConflictException {
         if (user.getName() == null | user.getEmail() == null) {
             throw new ValidationException("Невозможно создать пользователя");
         }
