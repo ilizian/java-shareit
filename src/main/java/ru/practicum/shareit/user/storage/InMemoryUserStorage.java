@@ -57,7 +57,7 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     private void checkUser(User user) throws ValidationException, ConflictException {
-        if (user.getName() == null | user.getEmail() == null) {
+        if (user.getName() == null || user.getEmail() == null) {
             throw new ValidationException("Невозможно создать пользователя");
         }
         for (User userExist : users.values()) {
