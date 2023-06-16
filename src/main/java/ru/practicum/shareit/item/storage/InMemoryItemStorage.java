@@ -1,7 +1,7 @@
 package ru.practicum.shareit.item.storage;
 
 import org.springframework.stereotype.Repository;
-import ru.practicum.shareit.exeption.NotFoundException;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.model.Item;
 
 import java.util.*;
@@ -9,6 +9,7 @@ import java.util.*;
 @Repository
 public class InMemoryItemStorage implements ItemStorage {
     private final Map<Long, Item> items = new HashMap<>();
+    private final Map<Long, List<Item>> userItems = new HashMap<>();
     private long generateId = 0;
 
     @Override
@@ -22,19 +23,15 @@ public class InMemoryItemStorage implements ItemStorage {
     @Override
     public Item addItem(Item item) {
         item.setId(generateId());
+        long ownerId = item.getOwner().getId();
+        if (userItems.containsKey(ownerId)) {
+            userItems.get(ownerId).add(item);
+        } else {
+            userItems.put(ownerId, new ArrayList<>());
+            userItems.get(ownerId).add(item);
+        }
         items.put(item.getId(), item);
         return item;
-    }
-
-    @Override
-    public List<Item> getItems(long userId) {
-        List<Item> itemList = new ArrayList<>();
-        for (Item item : items.values()) {
-            if (Objects.equals(item.getOwner().getId(), userId)) {
-                itemList.add(item);
-            }
-        }
-        return itemList;
     }
 
     @Override
@@ -44,11 +41,6 @@ public class InMemoryItemStorage implements ItemStorage {
             return item;
         }
         throw new NotFoundException("Ошибка. Неправильный id вещи");
-    }
-
-    @Override
-    public void deleteItem(long itemId) {
-        items.remove(itemId);
     }
 
     @Override
@@ -66,6 +58,11 @@ public class InMemoryItemStorage implements ItemStorage {
             }
         }
         return result;
+    }
+
+    @Override
+    public List<Item> getAllItems() {
+        return new ArrayList<>(items.values());
     }
 
     private long generateId() {

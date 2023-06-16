@@ -2,23 +2,23 @@ package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.exeption.NotFoundException;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.storage.ItemStorage;
-import ru.practicum.shareit.user.UserMapper;
-import ru.practicum.shareit.user.UserService;
 import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.storage.UserStorage;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class ItemServiceImpl implements ItemService {
     private final ItemStorage itemStorage;
-    private final UserService userService;
+    private final UserStorage userStorage;
 
     @Override
     public ItemDto getItem(long itemId) throws NotFoundException {
@@ -27,7 +27,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto addItem(ItemDto itemDto, long userId) throws NotFoundException {
-        User user = UserMapper.toUser(userService.getUserById(userId));
+        User user = userStorage.getUser(userId);
         Item item = ItemMapper.toItem(itemDto, user);
         item.setOwner(user);
         return ItemMapper.toItemDto(itemStorage.addItem(item));
@@ -36,7 +36,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemDto updateItem(long itemId, ItemDto itemDto, long userId) throws NotFoundException {
         Item item = itemStorage.getItem(itemId);
-        User user = UserMapper.toUser(userService.getUserById(userId));
+        User user = userStorage.getUser(userId);
         if (!Objects.equals(item.getOwner().getId(), user.getId())) {
             throw new NotFoundException("Владелец вещи другой пользователь");
         }
@@ -54,13 +54,10 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemDto> getItems(long userId) {
-        List<ItemDto> itemsDtoList = new ArrayList<>();
-        List<Item> items = itemStorage.getItems(userId);
-        for (Item item : items) {
-            ItemDto itemDto = ItemMapper.toItemDto(item);
-            itemsDtoList.add(itemDto);
-        }
-        return itemsDtoList;
+        return itemStorage.getAllItems().stream()
+                .filter(item -> item.getOwner().getId() == userId)
+                .map(ItemMapper::toItemDto)
+                .collect(Collectors.toList());
     }
 
     @Override

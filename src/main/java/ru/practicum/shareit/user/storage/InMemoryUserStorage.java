@@ -1,9 +1,9 @@
 package ru.practicum.shareit.user.storage;
 
 import org.springframework.stereotype.Repository;
-import ru.practicum.shareit.exeption.ConflictException;
-import ru.practicum.shareit.exeption.NotFoundException;
-import ru.practicum.shareit.exeption.ValidationException;
+import ru.practicum.shareit.exception.ConflictException;
+import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.user.model.User;
 
 import java.util.*;
@@ -11,6 +11,7 @@ import java.util.*;
 @Repository
 public class InMemoryUserStorage implements UserStorage {
     private final Map<Long, User> users = new HashMap<>();
+    private final Set<String> usersMailSet = new HashSet<>();
     private long generateId = 0;
 
     @Override
@@ -24,7 +25,9 @@ public class InMemoryUserStorage implements UserStorage {
     @Override
     public User addUser(User user) throws ValidationException {
         checkUser(user);
+        checkEmail(user);
         user.setId(generateId());
+        usersMailSet.add(user.getEmail());
         users.put(user.getId(), user);
         return user;
     }
@@ -36,15 +39,16 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User updateUser(User user, long userId) throws NotFoundException {
-        checkEmail(user, userId);
         if (users.containsKey(user.getId())) {
             User userOld = users.get(userId);
+            checkEmail(user);
             if (user.getEmail() == null) {
                 user.setEmail(userOld.getEmail());
             }
             if (user.getName() == null) {
                 user.setName(userOld.getName());
             }
+            updateUsersMailSet(userOld.getEmail(), user.getEmail());
             users.put(user.getId(), user);
             return user;
         }
@@ -53,6 +57,7 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public void deleteUser(long userId) {
+        usersMailSet.remove(users.get(userId).getEmail());
         users.remove(userId);
     }
 
@@ -60,20 +65,20 @@ public class InMemoryUserStorage implements UserStorage {
         if (user.getName() == null || user.getEmail() == null) {
             throw new ValidationException("Невозможно создать пользователя");
         }
-        for (User userExist : users.values()) {
-            if (Objects.equals(user.getEmail(), userExist.getEmail())) {
-                throw new ConflictException("Пользователь с таким email уже создан");
+    }
+
+    private void checkEmail(User user) throws ConflictException {
+        if (usersMailSet.contains(user.getEmail())) {
+            if (!Objects.equals(users.get(user.getId()).getEmail(), user.getEmail())) {
+                throw new ConflictException("Пользователь с таким email уже существует");
             }
         }
     }
 
-    private void checkEmail(User user, long userId) throws ConflictException {
-        for (User userExist : users.values()) {
-            if (!Objects.equals(userExist.getId(), userId)) {
-                if (Objects.equals(userExist.getEmail(), user.getEmail())) {
-                    throw new ConflictException("Пользователь с таким email уже существует");
-                }
-            }
+    private void updateUsersMailSet(String mailOld, String mailNew) {
+        if (!mailOld.equals(mailNew)) {
+            usersMailSet.remove(mailOld);
+            usersMailSet.add(mailNew);
         }
     }
 
