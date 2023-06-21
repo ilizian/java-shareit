@@ -12,7 +12,6 @@ import ru.practicum.shareit.user.storage.UserStorage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -54,10 +53,13 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemDto> getItems(long userId) {
-        return itemStorage.getAllItems().stream()
-                .filter(item -> item.getOwner().getId() == userId)
-                .map(ItemMapper::toItemDto)
-                .collect(Collectors.toList());
+        List<ItemDto> itemsDtoList = new ArrayList<>();
+        List<Item> items = itemStorage.getItems(userId);
+        for (Item item : items) {
+            ItemDto itemDto = ItemMapper.toItemDto(item);
+            itemsDtoList.add(itemDto);
+        }
+        return itemsDtoList;
     }
 
     @Override

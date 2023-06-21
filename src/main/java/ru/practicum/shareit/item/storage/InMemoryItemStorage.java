@@ -65,6 +65,11 @@ public class InMemoryItemStorage implements ItemStorage {
         return new ArrayList<>(items.values());
     }
 
+    @Override
+    public List<Item> getItems(long userId) {
+        return userItems.get(userId);
+    }
+
     private long generateId() {
         return ++generateId;
     }
