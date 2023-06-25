@@ -13,7 +13,7 @@ public interface UserService {
 
     UserDto addUser(UserDto userDto) throws ValidationException;
 
-    void deleteUser(long userId);
+    void deleteUser(long userId) throws NotFoundException;
 
     UserDto updateUser(UserDto userDto, long userId) throws NotFoundException, ValidationException;
 

@@ -1,20 +1,22 @@
 package ru.practicum.shareit.item.storage;
 
-import ru.practicum.shareit.exception.NotFoundException;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.item.model.Item;
 
 import java.util.List;
 
-public interface ItemStorage {
-    Item getItem(long itemId) throws NotFoundException;
+@Repository
+public interface ItemStorage extends JpaRepository<Item, Long> {
+    List<Item> findItemByDescriptionContainsIgnoreCase(String description);
 
-    Item addItem(Item item);
+    List<Item> findItemByNameContainsIgnoreCase(String name);
 
-    Item updateItem(Item item, long itemId) throws NotFoundException;
+    List<Item> findAllByOwnerId(Long ownerId);
 
-    List<Item> searchItems(String text);
-
-    List<Item> getAllItems();
-
-    List<Item> getItems(long userId);
+    @Query(value = "SELECT * FROM items WHERE available = TRUE AND " +
+            "(LOWER(description) LIKE '%' || ?1 || '%' OR LOWER(name) LIKE '%' || ?1 || '%')",
+            nativeQuery = true)
+    List<Item> search(String search);
 }

@@ -2,42 +2,64 @@ package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.booking.Booking;
+import ru.practicum.shareit.booking.BookingMapper;
+import ru.practicum.shareit.booking.BookingStorage;
+import ru.practicum.shareit.booking.misc.Status;
+import ru.practicum.shareit.comment.Comment;
+import ru.practicum.shareit.comment.CommentMapper;
+import ru.practicum.shareit.comment.CommentStorage;
+import ru.practicum.shareit.comment.dto.CommentDto;
 import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.storage.ItemStorage;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.storage.UserStorage;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class ItemServiceImpl implements ItemService {
     private final ItemStorage itemStorage;
     private final UserStorage userStorage;
+    private final BookingStorage bookingStorage;
+    private final CommentStorage commentStorage;
 
     @Override
-    public ItemDto getItem(long itemId) throws NotFoundException {
-        return ItemMapper.toItemDto(itemStorage.getItem(itemId));
+    public ItemDto getItem(long itemId, long userId) throws NotFoundException {
+        Item item = validateItem(itemId);
+        ItemDto itemDto = ItemMapper.toItemDto(item);
+        if (item.getOwner().getId() == userId) {
+            setBookingsForItem(itemDto);
+        }
+        itemDto.setComments(commentStorage.findCommentsByItemOrderByCreatedDesc(item).stream()
+                .map(CommentMapper::toCommentDto)
+                .collect(Collectors.toList()));
+        return itemDto;
     }
 
     @Override
     public ItemDto addItem(ItemDto itemDto, long userId) throws NotFoundException {
-        User user = userStorage.getUser(userId);
+        validateUser(userId);
+        User user = userStorage.getReferenceById(userId);
         Item item = ItemMapper.toItem(itemDto, user);
         item.setOwner(user);
-        return ItemMapper.toItemDto(itemStorage.addItem(item));
+        return ItemMapper.toItemDto(itemStorage.save(item));
     }
 
     @Override
     public ItemDto updateItem(long itemId, ItemDto itemDto, long userId) throws NotFoundException {
-        Item item = itemStorage.getItem(itemId);
-        User user = userStorage.getUser(userId);
+        validateUser(userId);
+        validateItem(itemId);
+        Item item = itemStorage.getReferenceById(itemId);
+        User user = userStorage.getReferenceById(userId);
         if (!Objects.equals(item.getOwner().getId(), user.getId())) {
-            throw new NotFoundException("Владелец вещи другой пользователь");
+            throw new NotFoundException("Ошибка. Владелец вещи другой пользователь");
         }
         if (Objects.nonNull(itemDto.getName())) {
             item.setName(itemDto.getName());
@@ -48,28 +70,100 @@ public class ItemServiceImpl implements ItemService {
         if (Objects.nonNull(itemDto.getAvailable())) {
             item.setAvailable(itemDto.getAvailable());
         }
-        return ItemMapper.toItemDto(itemStorage.updateItem(item, itemId));
+        return ItemMapper.toItemDto(itemStorage.save(item));
     }
 
     @Override
-    public List<ItemDto> getItems(long userId) {
-        List<ItemDto> itemsDtoList = new ArrayList<>();
-        List<Item> items = itemStorage.getItems(userId);
-        for (Item item : items) {
-            ItemDto itemDto = ItemMapper.toItemDto(item);
-            itemsDtoList.add(itemDto);
+    public List<ItemDto> getItems(long userId) throws NotFoundException {
+        Optional<User> optionalUser = userStorage.findById(userId);
+        if (optionalUser.isEmpty()) {
+            throw new NotFoundException("Ошибка. Пользователь не найден с id " + userId);
         }
-        return itemsDtoList;
+        return getItemByUser(userId);
     }
 
     @Override
-    public List<ItemDto> searchItems(String text) {
-        List<ItemDto> itemsDtoList = new ArrayList<>();
-        List<Item> items = itemStorage.searchItems(text);
-        for (Item item : items) {
-            ItemDto itemDto = ItemMapper.toItemDto(item);
-            itemsDtoList.add(itemDto);
+    public List<ItemDto> searchItems(String text) throws NotFoundException {
+        String query = text.toLowerCase();
+        if (text.isBlank()) {
+            return new ArrayList<>();
         }
-        return itemsDtoList;
+        List<Item> items = itemStorage.search(query);
+        if (items.isEmpty()) {
+            throw new NotFoundException("Ошибка. Не найдена вещь по фразе " + query);
+        }
+        return items.stream()
+                .map(ItemMapper::toItemDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ItemDto> getItemByUser(Long userId) {
+        return itemStorage.findAllByOwnerId(userId).stream()
+                .map(ItemMapper::toItemDto)
+                .map(this::setBookingsForItem)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public CommentDto addComment(Long userId, Long itemId, CommentDto commentDto) throws ValidationException,
+            NotFoundException {
+        validateUser(userId);
+        validateItem(itemId);
+        User user = userStorage.getReferenceById(userId);
+        List<Booking> bookings = bookingStorage
+                .findBookingsByBookerAndItemAndStatusNot(userId, itemId, Status.REJECTED);
+        if (bookings.isEmpty()) {
+            throw new ValidationException("Ошибка. У предмета отсутствуют бронирования");
+        }
+        boolean future = true;
+        for (Booking booking : bookings) {
+            if (booking.getEnd().isBefore(LocalDateTime.now())) {
+                future = false;
+                break;
+            }
+        }
+        if (future) {
+            throw new ValidationException("Ошибка. Комментарий не может быть оставлен к будущему бронированию");
+        }
+        Comment comment = CommentMapper.toComment(commentDto);
+        comment.setItem(ItemMapper.toItem(getItem(itemId, userId), user));
+        comment.setAuthor(user);
+        comment.setCreated(LocalDateTime.now());
+        commentStorage.save(comment);
+        return CommentMapper.toCommentDto(comment);
+    }
+
+    private Item validateItem(long itemId) throws NotFoundException {
+        return itemStorage.findById(itemId)
+                .orElseThrow(() -> new NotFoundException("Ошибка. Не найдена вещь с id " + itemId));
+    }
+
+    private User validateUser(long userId) throws NotFoundException {
+        return userStorage.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Ошибка. Не найден пользователь с id " + userId));
+    }
+
+    private ItemDto setBookingsForItem(ItemDto itemDto) {
+        Booking lastBooking = null;
+        Booking nextBooking = null;
+        List<Booking> bookings = bookingStorage.findBookingsByItemAsc(itemDto.getId());
+        for (int i = 0; i < bookings.size(); i++) {
+            Booking booking = bookings.get(i);
+            if (booking.getStart().isAfter(LocalDateTime.now())) {
+                nextBooking = booking;
+                if (i != 0) {
+                    lastBooking = bookings.get(i - 1);
+                }
+                break;
+            }
+        }
+        if (lastBooking != null) {
+            itemDto.setLastBooking(BookingMapper.toBookingDto(lastBooking));
+        }
+        if (nextBooking != null) {
+            itemDto.setNextBooking(BookingMapper.toBookingDto(nextBooking));
+        }
+        return itemDto;
     }
 }
