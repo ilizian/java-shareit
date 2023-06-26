@@ -20,7 +20,8 @@ public class ItemController {
     private final ItemService itemService;
 
     @GetMapping("{itemId}")
-    public ItemDto getItemById(@RequestHeader("X-Sharer-User-Id") long userId, @PathVariable long itemId) throws NotFoundException {
+    public ItemDto getItemById(@RequestHeader("X-Sharer-User-Id") long userId,
+                               @PathVariable long itemId) throws NotFoundException {
         log.info("Запрос вещи по id " + itemId);
         return itemService.getItem(itemId, userId);
     }

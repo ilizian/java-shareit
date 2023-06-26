@@ -100,6 +100,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public List<ItemDto> getItemByUser(Long userId) {
         return itemStorage.findAllByOwnerId(userId).stream()
+                .sorted(Comparator.comparingLong(Item::getId))
                 .map(ItemMapper::toItemDto)
                 .map(this::setBookingsForItem)
                 .collect(Collectors.toList());
@@ -145,24 +146,18 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private ItemDto setBookingsForItem(ItemDto itemDto) {
-        Booking lastBooking = null;
-        Booking nextBooking = null;
-        List<Booking> bookings = bookingStorage.findBookingsByItemAsc(itemDto.getId());
-        for (int i = 0; i < bookings.size(); i++) {
-            Booking booking = bookings.get(i);
-            if (booking.getStart().isAfter(LocalDateTime.now())) {
-                nextBooking = booking;
-                if (i != 0) {
-                    lastBooking = bookings.get(i - 1);
-                }
-                break;
-            }
-        }
-        if (lastBooking != null) {
-            itemDto.setLastBooking(BookingMapper.toBookingDto(lastBooking));
-        }
-        if (nextBooking != null) {
-            itemDto.setNextBooking(BookingMapper.toBookingDto(nextBooking));
+        List<Booking> bookings = bookingStorage.findBookingsByItemIdOrderByStart(itemDto.getId());
+        if (!bookings.isEmpty()) {
+            Optional<Booking> lastBooking = bookings.stream()
+                    .filter(booking -> !booking.getStatus().equals(Status.REJECTED) &&
+                            booking.getStart().isBefore(LocalDateTime.now()))
+                    .reduce((first, second) -> second);
+            lastBooking.ifPresent(booking -> itemDto.setLastBooking(BookingMapper.toBookingDto(booking)));
+            Optional<Booking> nextBooking = bookings.stream()
+                    .filter(booking -> !booking.getStatus().equals(Status.REJECTED) &&
+                            booking.getStart().isAfter(LocalDateTime.now()))
+                    .findFirst();
+            nextBooking.ifPresent(booking -> itemDto.setNextBooking(BookingMapper.toBookingDto(booking)));
         }
         return itemDto;
     }

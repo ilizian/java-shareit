@@ -9,10 +9,6 @@ import java.util.List;
 
 @Repository
 public interface ItemStorage extends JpaRepository<Item, Long> {
-    List<Item> findItemByDescriptionContainsIgnoreCase(String description);
-
-    List<Item> findItemByNameContainsIgnoreCase(String name);
-
     List<Item> findAllByOwnerId(Long ownerId);
 
     @Query(value = "SELECT * FROM items WHERE available = TRUE AND " +
