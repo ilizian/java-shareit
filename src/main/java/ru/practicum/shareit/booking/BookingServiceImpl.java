@@ -51,10 +51,10 @@ public class BookingServiceImpl implements BookingService {
         }
         LocalDateTime start = bookingDto.getStart();
         LocalDateTime end = bookingDto.getEnd();
-        if (start == null | end == null) {
+        if (start == null || end == null) {
             throw new ValidationException("Ошибка. Дата не может быть пустой");
         }
-        if (end.isBefore(start) | end.equals(start)) {
+        if (end.isBefore(start) || end.equals(start)) {
             throw new ValidationException("Ошибка. Дата окончания бронирования не может быть меньше даты начала");
         }
         Booking booking = BookingMapper.dtoToBooking(bookingDto, user, item);
