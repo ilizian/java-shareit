@@ -2,7 +2,6 @@ package ru.practicum.shareit.booking;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.booking.misc.Status;
 import ru.practicum.shareit.user.model.User;
@@ -12,10 +11,7 @@ import java.util.List;
 
 @Repository
 public interface BookingStorage extends JpaRepository<Booking, Long> {
-
-    @Query(value = "select b from Booking as b where b.booker.id =?1 and b.item.id = ?2 and b.status <> ?3 " +
-            "order by b.start desc")
-    List<Booking> findBookingsByBookerAndItemAndStatusNot(Long userId, Long itemId, Status status);
+    List<Booking> findAllByBookerIdAndItemIdAndStatusNot(Long userId, Long itemId, Status status);
 
     List<Booking> findAllByItemOwner(User owner, Sort sort);
 

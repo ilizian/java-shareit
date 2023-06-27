@@ -110,7 +110,7 @@ public class ItemServiceImpl implements ItemService {
         User user = validateUser(userId);
         Item item = validateItem(itemId);
         List<Booking> bookings = bookingStorage
-                .findBookingsByBookerAndItemAndStatusNot(userId, itemId, Status.REJECTED);
+                .findAllByBookerIdAndItemIdAndStatusNot(userId, itemId, Status.REJECTED);
         if (bookings.isEmpty()) {
             throw new ValidationException("Ошибка. У предмета отсутствуют бронирования");
         }
