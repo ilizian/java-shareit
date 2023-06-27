@@ -45,8 +45,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto addItem(ItemDto itemDto, long userId) throws NotFoundException {
-        validateUser(userId);
-        User user = userStorage.getReferenceById(userId);
+        User user = validateUser(userId);
         Item item = ItemMapper.toItem(itemDto, user);
         item.setOwner(user);
         return ItemMapper.toItemDto(itemStorage.save(item));
@@ -54,10 +53,8 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto updateItem(long itemId, ItemDto itemDto, long userId) throws NotFoundException {
-        validateUser(userId);
-        validateItem(itemId);
-        Item item = itemStorage.getReferenceById(itemId);
-        User user = userStorage.getReferenceById(userId);
+        User user = validateUser(userId);
+        Item item = validateItem(itemId);
         if (!Objects.equals(item.getOwner().getId(), user.getId())) {
             throw new NotFoundException("Ошибка. Владелец вещи другой пользователь");
         }
@@ -109,9 +106,8 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public CommentDto addComment(Long userId, Long itemId, CommentDto commentDto) throws ValidationException,
             NotFoundException {
-        validateUser(userId);
-        validateItem(itemId);
-        User user = userStorage.getReferenceById(userId);
+        User user = validateUser(userId);
+        Item item = validateItem(itemId);
         List<Booking> bookings = bookingStorage
                 .findBookingsByBookerAndItemAndStatusNot(userId, itemId, Status.REJECTED);
         if (bookings.isEmpty()) {
@@ -128,7 +124,7 @@ public class ItemServiceImpl implements ItemService {
             throw new ValidationException("Ошибка. Комментарий не может быть оставлен к будущему бронированию");
         }
         Comment comment = CommentMapper.toComment(commentDto);
-        comment.setItem(ItemMapper.toItem(getItem(itemId, userId), user));
+        comment.setItem(item);
         comment.setAuthor(user);
         comment.setCreated(LocalDateTime.now());
         commentStorage.save(comment);
