@@ -36,4 +36,5 @@ public interface BookingStorage extends JpaRepository<Booking, Long> {
                                                            LocalDateTime end, Sort sort);
 
     List<Booking> findBookingsByItemIdOrderByStart(long itemId);
+
 }

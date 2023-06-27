@@ -19,7 +19,7 @@ public interface ItemService {
 
     List<ItemDto> searchItems(String text) throws NotFoundException;
 
-    List<ItemDto> getItemByUser(Long userId);
+    List<ItemDto> getItemByUser(Long userId) throws NotFoundException;
 
     CommentDto addComment(Long userId, Long itemId, CommentDto commentDto) throws ValidationException, NotFoundException;
 }

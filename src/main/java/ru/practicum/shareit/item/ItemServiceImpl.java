@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.BookingMapper;
@@ -29,6 +30,7 @@ public class ItemServiceImpl implements ItemService {
     private final UserStorage userStorage;
     private final BookingStorage bookingStorage;
     private final CommentStorage commentStorage;
+    private final Sort sort = Sort.by(Sort.Direction.ASC, "start");
 
     @Override
     public ItemDto getItem(long itemId, long userId) throws NotFoundException {
@@ -95,13 +97,34 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemDto> getItemByUser(Long userId) {
+    public List<ItemDto> getItemByUser(Long userId) throws NotFoundException {
         List<Item> items = itemStorage.findAllByOwnerId(userId);
-        items.sort((Comparator.comparing(Item::getId)));
-        return  items.stream()
-                .map(ItemMapper::toItemDto)
-                .map(this::setBookingsForItem)
-                .collect(Collectors.toList());
+        List<ItemDto> itemsDto = new ArrayList<>();
+        User user = userStorage.findById(userId).orElseThrow(() ->
+                new NotFoundException("Ошибка. Невозможно получить пользователя с id  " + userId));
+        List<Booking> bookingsLast = bookingStorage.findAllByItemOwnerAndEndBefore(user, LocalDateTime.now(), sort);
+        List<Booking> bookingsNext = bookingStorage.findAllByItemOwnerAndStartAfter(user, LocalDateTime.now(), sort);
+        for (Item item : items) {
+            ItemDto itemDto = ItemMapper.toItemDto(item);
+            try {
+                itemDto.setNextBooking(BookingMapper.toBookingDto(
+                        Objects.requireNonNull(bookingsNext.stream()
+                                .filter(booking -> booking.getItem().equals(item)).findFirst().orElse(null))
+                ));
+            } catch (NullPointerException e) {
+                itemDto.setNextBooking(null);
+            }
+            try {
+                itemDto.setLastBooking(BookingMapper.toBookingDto(
+                        Objects.requireNonNull(bookingsLast.stream()
+                                .filter(booking -> booking.getItem().equals(item)).findFirst().orElse(null))
+                ));
+            } catch (NullPointerException e) {
+                itemDto.setLastBooking(null);
+            }
+            itemsDto.add(itemDto);
+        }
+        return itemsDto;
     }
 
     @Override
@@ -142,7 +165,7 @@ public class ItemServiceImpl implements ItemService {
                 .orElseThrow(() -> new NotFoundException("Ошибка. Не найден пользователь с id " + userId));
     }
 
-    private ItemDto setBookingsForItem(ItemDto itemDto) {
+    private void setBookingsForItem(ItemDto itemDto) {
         List<Booking> bookings = bookingStorage.findBookingsByItemIdOrderByStart(itemDto.getId());
         if (!bookings.isEmpty()) {
             Optional<Booking> lastBooking = bookings.stream()
@@ -156,6 +179,5 @@ public class ItemServiceImpl implements ItemService {
                     .findFirst();
             nextBooking.ifPresent(booking -> itemDto.setNextBooking(BookingMapper.toBookingDto(booking)));
         }
-        return itemDto;
     }
 }
