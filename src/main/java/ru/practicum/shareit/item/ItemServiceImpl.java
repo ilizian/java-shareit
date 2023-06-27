@@ -96,8 +96,9 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemDto> getItemByUser(Long userId) {
-        return itemStorage.findAllByOwnerId(userId).stream()
-                .sorted(Comparator.comparingLong(Item::getId))
+        List<Item> items = itemStorage.findAllByOwnerId(userId);
+        items.sort((Comparator.comparing(Item::getId)));
+        return  items.stream()
                 .map(ItemMapper::toItemDto)
                 .map(this::setBookingsForItem)
                 .collect(Collectors.toList());
