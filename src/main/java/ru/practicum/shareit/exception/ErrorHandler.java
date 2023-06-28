@@ -36,13 +36,20 @@ public class ErrorHandler {
     @ResponseStatus(code = HttpStatus.CONFLICT)
     public ErrorResponse handleConflictException(final ConflictException e) {
         log.warn("ConflictException", e);
-        return new ErrorResponse("404 Conflict", e.getMessage());
+        return new ErrorResponse("400 Conflict", e.getMessage());
     }
 
     @ExceptionHandler
     @ResponseStatus(code = HttpStatus.BAD_REQUEST)
     public ErrorResponse handleMethodArgumentNotValidException(final MethodArgumentNotValidException e) {
         log.warn("MethodArgumentNotValidException ", e);
-        return new ErrorResponse("404 MethodArgumentNotValidException", e.getMessage());
+        return new ErrorResponse("400 MethodArgumentNotValidException", e.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleMethodUnknownStateException(final UnknownStateException e) {
+        log.warn("UnknownStateException ", e);
+        return new ErrorResponse("Unknown state: UNSUPPORTED_STATUS", e.getMessage());
     }
 }

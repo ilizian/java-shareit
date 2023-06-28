@@ -37,13 +37,14 @@ public class UserController {
     }
 
     @DeleteMapping("/{userId}")
-    public void deleteUser(@PathVariable long userId) {
+    public void deleteUser(@PathVariable long userId) throws NotFoundException {
         log.info("Удаление пользователя по id " + userId);
         userService.deleteUser(userId);
     }
 
     @PatchMapping("/{userId}")
-    public UserDto updateUser(@RequestBody UserDto userDto, @PathVariable long userId) throws NotFoundException, ValidationException {
+    public UserDto updateUser(@RequestBody UserDto userDto, @PathVariable long userId) throws NotFoundException,
+            ValidationException {
         log.info("Обновление пользователя по id " + userId);
         return userService.updateUser(userDto, userId);
     }
