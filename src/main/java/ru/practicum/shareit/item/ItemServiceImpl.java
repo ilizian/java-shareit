@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.Booking;
@@ -16,6 +17,8 @@ import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.storage.ItemStorage;
+import ru.practicum.shareit.request.ItemRequestStorage;
+import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.storage.UserStorage;
 
@@ -30,7 +33,8 @@ public class ItemServiceImpl implements ItemService {
     private final UserStorage userStorage;
     private final BookingStorage bookingStorage;
     private final CommentStorage commentStorage;
-    private final Sort sort = Sort.by(Sort.Direction.ASC, "start");
+    private final Sort sort = Sort.by(Sort.Direction.ASC, "id");
+    private final ItemRequestStorage itemRequestStorage;
 
     @Override
     public ItemDto getItem(long itemId, long userId) throws NotFoundException {
@@ -50,6 +54,11 @@ public class ItemServiceImpl implements ItemService {
         User user = validateUser(userId);
         Item item = ItemMapper.toItem(itemDto, user);
         item.setOwner(user);
+        if (Objects.nonNull(itemDto.getRequestId())) {
+            ItemRequest itemRequest = itemRequestStorage.findById(itemDto.getRequestId()).orElseThrow(() ->
+                    new NotFoundException("Ошибка. Невозможно получить запрос с id  " + itemDto.getRequestId()));
+            item.setRequest(itemRequest);
+        }
         return ItemMapper.toItemDto(itemStorage.save(item));
     }
 
@@ -73,21 +82,22 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemDto> getItems(long userId) throws NotFoundException {
+    public List<ItemDto> getItems(long userId, int from, int size) throws NotFoundException {
         Optional<User> optionalUser = userStorage.findById(userId);
         if (optionalUser.isEmpty()) {
             throw new NotFoundException("Ошибка. Пользователь не найден с id " + userId);
         }
-        return getItemByUser(userId);
+        return getItemByUser(userId, from, size);
     }
 
     @Override
-    public List<ItemDto> searchItems(String text) throws NotFoundException {
+    public List<ItemDto> searchItems(String text, int from, int size) throws NotFoundException {
+        PageRequest pageRequest = PageRequest.of(from, size, sort);
         String query = text.toLowerCase();
         if (text.isBlank()) {
             return new ArrayList<>();
         }
-        List<Item> items = itemStorage.search(query);
+        List<Item> items = itemStorage.search(query, pageRequest);
         if (items.isEmpty()) {
             throw new NotFoundException("Ошибка. Не найдена вещь по фразе " + query);
         }
@@ -97,13 +107,14 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemDto> getItemByUser(Long userId) throws NotFoundException {
-        List<Item> items = itemStorage.findAllByOwnerId(userId);
+    public List<ItemDto> getItemByUser(Long userId, int from, int size) throws NotFoundException {
+        PageRequest pageRequest = PageRequest.of(from / size, size, sort);
+        List<Item> items = itemStorage.findAllByOwnerId(userId, pageRequest);
         List<ItemDto> itemsDto = new ArrayList<>();
         User user = userStorage.findById(userId).orElseThrow(() ->
                 new NotFoundException("Ошибка. Невозможно получить пользователя с id  " + userId));
-        List<Booking> bookingsLast = bookingStorage.findAllByItemOwnerAndEndBefore(user, LocalDateTime.now(), sort);
-        List<Booking> bookingsNext = bookingStorage.findAllByItemOwnerAndStartAfter(user, LocalDateTime.now(), sort);
+        List<Booking> bookingsLast = bookingStorage.findByItemOwnerAndEndBeforeOrderByIdDesc(user, LocalDateTime.now());
+        List<Booking> bookingsNext = bookingStorage.findByItemOwnerAndStartAfterOrderByIdDesc(user, LocalDateTime.now());
         for (Item item : items) {
             ItemDto itemDto = ItemMapper.toItemDto(item);
             try {

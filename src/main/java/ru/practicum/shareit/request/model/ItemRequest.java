@@ -1,17 +1,15 @@
-package ru.practicum.shareit.request;
+package ru.practicum.shareit.request.model;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import ru.practicum.shareit.user.model.User;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
-/**
- * TODO Sprint add-item-requests.
- */
-@Data
+@Getter
+@Setter
+@AllArgsConstructor
 @NoArgsConstructor
 @Entity
 @Table(name = "requests")

@@ -1,6 +1,7 @@
 package ru.practicum.shareit.booking;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.dto.BookingDto;
@@ -84,29 +85,31 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingDtoResponse> getBookingsOfUser(long userId, String state) throws NotFoundException {
+    public List<BookingDtoResponse> getBookingsOfUser(long userId, String state, int from, int size)
+            throws NotFoundException {
         User user = userStorage.findById(userId).orElseThrow(() ->
                 new NotFoundException("Ошибка. Невозможно получить пользователя с id  " + userId));
         List<Booking> bookings;
+        PageRequest pageRequest = PageRequest.of(from / size, size, sort);
         switch (state) {
             case "ALL":
-                bookings = bookingStorage.findAllByBooker(user, sort);
+                bookings = bookingStorage.findAllByBooker(user, pageRequest);
                 break;
             case "CURRENT":
                 bookings = bookingStorage.findAllByBookerAndStartBeforeAndEndAfter(user, LocalDateTime.now(),
-                        LocalDateTime.now(), sort);
+                        LocalDateTime.now(), pageRequest);
                 break;
             case "PAST":
-                bookings = bookingStorage.findAllByBookerAndEndBefore(user, LocalDateTime.now(), sort);
+                bookings = bookingStorage.findAllByBookerAndEndBefore(user, LocalDateTime.now(), pageRequest);
                 break;
             case "FUTURE":
-                bookings = bookingStorage.findAllByBookerAndStartAfter(user, LocalDateTime.now(), sort);
+                bookings = bookingStorage.findAllByBookerAndStartAfter(user, LocalDateTime.now(), pageRequest);
                 break;
             case "WAITING":
-                bookings = bookingStorage.findAllByBookerAndStatusEquals(user, Status.WAITING, sort);
+                bookings = bookingStorage.findAllByBookerAndStatusEquals(user, Status.WAITING, pageRequest);
                 break;
             case "REJECTED":
-                bookings = bookingStorage.findAllByBookerAndStatusEquals(user, Status.REJECTED, sort);
+                bookings = bookingStorage.findAllByBookerAndStatusEquals(user, Status.REJECTED, pageRequest);
                 break;
             default:
                 throw new UnknownStateException("Unknown state: UNSUPPORTED_STATUS");
@@ -117,29 +120,31 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingDtoResponse> getForOwner(long userId, String state) throws NotFoundException {
+    public List<BookingDtoResponse> getForOwner(long userId, String state, int from, int size)
+            throws NotFoundException {
         User user = userStorage.findById(userId).orElseThrow(() ->
                 new NotFoundException("Ошибка. Невозможно получить пользователя с id  " + userId));
         List<Booking> bookings;
+        PageRequest pageRequest = PageRequest.of(from / size, size, sort);
         switch (state) {
             case "PAST":
-                bookings = bookingStorage.findAllByItemOwnerAndEndBefore(user, LocalDateTime.now(), sort);
+                bookings = bookingStorage.findAllByItemOwnerAndEndBefore(user, LocalDateTime.now(), pageRequest);
                 break;
             case "FUTURE":
-                bookings = bookingStorage.findAllByItemOwnerAndStartAfter(user, LocalDateTime.now(), sort);
+                bookings = bookingStorage.findAllByItemOwnerAndStartAfter(user, LocalDateTime.now(), pageRequest);
                 break;
             case "ALL":
-                bookings = bookingStorage.findAllByItemOwner(user, sort);
+                bookings = bookingStorage.findAllByItemOwner(user, pageRequest);
                 break;
             case "CURRENT":
                 bookings = bookingStorage.findAllByItemOwnerAndStartBeforeAndEndAfter(user, LocalDateTime.now(),
-                        LocalDateTime.now(), sort);
+                        LocalDateTime.now(), pageRequest);
                 break;
             case "WAITING":
-                bookings = bookingStorage.findAllByItemOwnerAndStatusEquals(user, Status.WAITING, sort);
+                bookings = bookingStorage.findAllByItemOwnerAndStatusEquals(user, Status.WAITING, pageRequest);
                 break;
             case "REJECTED":
-                bookings = bookingStorage.findAllByItemOwnerAndStatusEquals(user, Status.REJECTED, sort);
+                bookings = bookingStorage.findAllByItemOwnerAndStatusEquals(user, Status.REJECTED, pageRequest);
                 break;
             default:
                 throw new UnknownStateException("Unknown state: UNSUPPORTED_STATUS");
