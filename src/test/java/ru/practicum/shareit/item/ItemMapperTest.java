@@ -30,6 +30,7 @@ public class ItemMapperTest {
         assertEquals(item.getName(), itemDto.getName());
         assertEquals(item.getAvailable(), itemDto.getAvailable());
     }
+
     @Test
     void toItemDtoTest() {
         Item item = Item.builder()

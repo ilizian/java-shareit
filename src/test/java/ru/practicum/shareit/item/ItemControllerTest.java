@@ -30,17 +30,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class ItemControllerTest {
     @MockBean
     private ItemService itemService;
-
     @Autowired
     private MockMvc mockMvc;
-
     @Autowired
     private ObjectMapper objectMapper;
-
     UserDto userDto;
-
     ItemDto itemDto;
-
 
     @BeforeEach
     void init() {
@@ -50,7 +45,6 @@ public class ItemControllerTest {
                 .description("itemTestDesc")
                 .available(true)
                 .build();
-
         userDto = UserDto.builder()
                 .id(1L)
                 .name("user")
@@ -70,6 +64,7 @@ public class ItemControllerTest {
                 .andExpect(jsonPath("$.id", is(itemDto.getId()), Long.class))
                 .andExpect(jsonPath("$.name", is(itemDto.getName())));
     }
+
     @Test
     void addItemTest() throws Exception {
         when(itemService.addItem(any(), anyLong())).thenReturn(itemDto);
@@ -133,7 +128,6 @@ public class ItemControllerTest {
                 .authorName("authorTest")
                 .created(LocalDateTime.now())
                 .build();
-
         when(itemService.addComment(anyLong(), anyLong(), any())).thenReturn(commentDto);
         mockMvc.perform(post("/items/1/comment")
                         .content(objectMapper.writeValueAsString(commentDto))
