@@ -15,8 +15,6 @@ public interface ItemService {
 
     ItemDto updateItem(long itemId, ItemDto itemDto, long userId) throws NotFoundException;
 
-    List<ItemDto> getItems(long userId, int from, int size) throws NotFoundException;
-
     List<ItemDto> searchItems(String text, int from, int size) throws NotFoundException;
 
     List<ItemDto> getItemByUser(Long userId, int from, int size) throws NotFoundException;

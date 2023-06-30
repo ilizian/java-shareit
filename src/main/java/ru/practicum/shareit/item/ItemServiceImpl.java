@@ -82,15 +82,6 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemDto> getItems(long userId, int from, int size) throws NotFoundException {
-        Optional<User> optionalUser = userStorage.findById(userId);
-        if (optionalUser.isEmpty()) {
-            throw new NotFoundException("Ошибка. Пользователь не найден с id " + userId);
-        }
-        return getItemByUser(userId, from, size);
-    }
-
-    @Override
     public List<ItemDto> searchItems(String text, int from, int size) throws NotFoundException {
         PageRequest pageRequest = PageRequest.of(from, size, sort);
         String query = text.toLowerCase();

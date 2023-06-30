@@ -14,9 +14,9 @@ public class ItemRequestMapper {
                 new ArrayList<>());
     }
 
-    public static ItemRequest toItemRequest(ItemRequestDtoResponse toItemRequestDtoResponse) {
-        return new ItemRequest(null,
-                toItemRequestDtoResponse.getDescription(),
+    public static ItemRequest toItemRequest(ItemRequestDtoResponse itemRequestDtoResponse) {
+        return new ItemRequest(itemRequestDtoResponse.getId(),
+                itemRequestDtoResponse.getDescription(),
                 null,
                 LocalDateTime.now());
     }

@@ -45,11 +45,11 @@ public class ItemController {
     }
 
     @GetMapping
-    public List<ItemDto> getItems(@RequestHeader("X-Sharer-User-Id") long userId,
+    public List<ItemDto> getItemByUser(@RequestHeader("X-Sharer-User-Id") long userId,
                                   @RequestParam(defaultValue = "0") @Min(0) int from,
                                   @RequestParam(defaultValue = "100") @Min(1) int size) throws NotFoundException {
         log.info("Запрос списка вещей пользователя с id " + userId);
-        return itemService.getItems(userId, from, size);
+        return itemService.getItemByUser(userId, from, size);
     }
 
     @GetMapping("/search")
