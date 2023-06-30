@@ -18,6 +18,6 @@ public class ItemRequestMapper {
         return new ItemRequest(itemRequestDtoResponse.getId(),
                 itemRequestDtoResponse.getDescription(),
                 null,
-                LocalDateTime.now());
+                itemRequestDtoResponse.getCreated());
     }
 }
