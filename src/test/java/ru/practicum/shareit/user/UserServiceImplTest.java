@@ -109,6 +109,13 @@ public class UserServiceImplTest {
     }
 
     @Test
+    void getUserByIdErrorTest() {
+        NotFoundException exception = assertThrows(NotFoundException.class,
+                () -> userService.getUserById(99L));
+        assertEquals("Ошибка. Невозможно получить пользователя с id  99", exception.getMessage());
+    }
+
+    @Test
     void getUsersTest() {
         Mockito
                 .when(userStorage.findAll())
@@ -117,5 +124,12 @@ public class UserServiceImplTest {
         assertEquals(users.stream()
                 .map(UserMapper::toUserDto)
                 .collect(Collectors.toList()), usersDto);
+    }
+
+    @Test
+    void deleteUserErrorTest() {
+        NotFoundException exception = assertThrows(NotFoundException.class,
+                () -> userService.deleteUser(99L));
+        assertEquals("Ошибка. Не найден пользователь", exception.getMessage());
     }
 }

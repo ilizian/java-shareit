@@ -30,8 +30,9 @@ class UserControllerTest {
     @Autowired
     private MockMvc mockMvc;
     @Autowired
-    ObjectMapper objectMapper;
-    UserDto userDto;
+    private ObjectMapper objectMapper;
+    private UserDto userDto;
+    private UserDto userDtoError;
 
     @BeforeEach
     void init() {
@@ -40,6 +41,12 @@ class UserControllerTest {
                 .name("user")
                 .email("user@test.ru")
                 .build();
+        userDtoError = UserDto.builder()
+                .id(2L)
+                .name("user")
+                .email("user")
+                .build();
+
     }
 
     @Test
@@ -53,6 +60,17 @@ class UserControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(userDto.getId()), Long.class))
                 .andExpect(jsonPath("$.name", is(userDto.getName())));
+    }
+
+    @Test
+    public void addUserErrorEmailTest() throws Exception {
+        when(userService.addUser(any())).thenReturn(userDtoError);
+        mockMvc.perform(post("/users")
+                        .content(objectMapper.writeValueAsString(userDtoError))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
