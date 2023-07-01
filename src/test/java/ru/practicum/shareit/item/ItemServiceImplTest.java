@@ -3,8 +3,8 @@ package ru.practicum.shareit.item;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.BookingController;
 import ru.practicum.shareit.booking.BookingMapper;
@@ -17,14 +17,17 @@ import ru.practicum.shareit.user.UserController;
 import ru.practicum.shareit.user.UserMapper;
 import ru.practicum.shareit.user.dto.UserDto;
 
+import javax.transaction.Transactional;
 import javax.validation.ConstraintViolationException;
 import java.time.LocalDateTime;
 import java.util.List;
 
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-@AutoConfigureTestDatabase
+@Transactional
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class ItemServiceImplTest {
     @Autowired
     private BookingController bookingController;
@@ -35,9 +38,8 @@ class ItemServiceImplTest {
     private UserDto userDto;
     private ItemDto itemDto;
 
-
     @BeforeEach
-    void setUp() {
+    void init() {
         userDto = new UserDto(1L, "user", "user@test.ru");
         itemDto = new ItemDto(1L, "itemTest", "itemDescTest",
                 true, null, null, null, null);
@@ -158,7 +160,7 @@ class ItemServiceImplTest {
     }
 
     @Test
-    void search() throws ValidationException, NotFoundException {
+    void searchItemsTest() throws ValidationException, NotFoundException {
         userController.addUser(userDto);
         itemController.addItem(itemDto, 1L);
         assertEquals(itemController.searchItems("itemDescTest", 0, 1).size(), 1);
@@ -194,5 +196,28 @@ class ItemServiceImplTest {
                 .build();
         assertThrows(ValidationException.class, () -> itemController.addComment(itemDto.getId(),
                 userDto.getId(), commentDto));
+    }
+
+    @Test
+    void addCommentTest() throws ValidationException, NotFoundException, InterruptedException {
+        UserDto userDto1 = new UserDto(2L, "user1", "user1@test.ru");
+        ItemDto itemDto1 = new ItemDto(2L, "itemTest1", "itemDescTest1",
+                true, null, null, null, null);
+        Booking booking1 = new Booking(1L, LocalDateTime.now().plusNanos(200000000), LocalDateTime.now().plusNanos(300000000),
+                ItemMapper.toItem(itemDto, UserMapper.toUser(userDto1)), UserMapper.toUser(userDto), Status.APPROVED);
+        Booking booking2 = new Booking(2L, LocalDateTime.now().plusDays(1), LocalDateTime.now().plusDays(22),
+                ItemMapper.toItem(itemDto, UserMapper.toUser(userDto1)), UserMapper.toUser(userDto), Status.WAITING);
+        itemDto1.setLastBooking(BookingMapper.toBookingDto(booking1));
+        itemDto1.setNextBooking(BookingMapper.toBookingDto(booking2));
+        userController.addUser(userDto);
+        itemController.addItem(itemDto, 1L);
+        userController.addUser(userDto1);
+        itemController.addItem(itemDto1, 2L);
+        bookingController.createBooking(userDto1.getId(), BookingMapper.toBookingDto(booking1));
+        bookingController.createBooking(userDto1.getId(), BookingMapper.toBookingDto(booking2));
+        bookingController.updateBooking(1L, true, 2L);
+        Thread.sleep(3000);
+        CommentDto commentDto = new CommentDto(1L, "text", "Author", LocalDateTime.now());
+        itemController.addComment(2, 1, commentDto);
     }
 }
