@@ -24,6 +24,7 @@ import java.util.List;
 
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
 @Transactional
@@ -218,6 +219,30 @@ class ItemServiceImplTest {
         bookingController.updateBooking(1L, true, 2L);
         Thread.sleep(3000);
         CommentDto commentDto = new CommentDto(1L, "text", "Author", LocalDateTime.now());
-        itemController.addComment(2, 1, commentDto);
+        CommentDto commentDto1 = itemController.addComment(2, 1, commentDto);
+        assertNotNull(commentDto1);
+    }
+
+    @Test
+    void getItemWithBookingTest() throws ValidationException, NotFoundException, InterruptedException {
+        UserDto userDto1 = new UserDto(2L, "user1", "user1@test.ru");
+        ItemDto itemDto1 = new ItemDto(2L, "itemTest1", "itemDescTest1",
+                true, null, null, null, null);
+        Booking booking1 = new Booking(1L, LocalDateTime.now().plusNanos(200000000), LocalDateTime.now().plusNanos(300000000),
+                ItemMapper.toItem(itemDto, UserMapper.toUser(userDto1)), UserMapper.toUser(userDto), Status.APPROVED);
+        Booking booking2 = new Booking(2L, LocalDateTime.now().plusDays(1), LocalDateTime.now().plusDays(22),
+                ItemMapper.toItem(itemDto, UserMapper.toUser(userDto1)), UserMapper.toUser(userDto), Status.WAITING);
+        itemDto1.setLastBooking(BookingMapper.toBookingDto(booking1));
+        itemDto1.setNextBooking(BookingMapper.toBookingDto(booking2));
+        userController.addUser(userDto);
+        itemController.addItem(itemDto, 1L);
+        userController.addUser(userDto1);
+        itemController.addItem(itemDto1, 2L);
+        bookingController.createBooking(userDto1.getId(), BookingMapper.toBookingDto(booking1));
+        bookingController.createBooking(userDto1.getId(), BookingMapper.toBookingDto(booking2));
+        bookingController.updateBooking(1L, true, 2L);
+        Thread.sleep(3000);
+        ItemDto itemDto2 = itemController.getItemById(1L, 1L);
+        assertNotNull(itemDto2);
     }
 }
