@@ -23,7 +23,7 @@ public class BookingController {
     private final BookingService bookingService;
 
     @GetMapping("{bookingId}")
-    public BookingDtoResponse getBooking(@PathVariable int bookingId, @RequestHeader("X-Sharer-User-Id") long userId)
+    public BookingDtoResponse getBooking(@PathVariable long bookingId, @RequestHeader("X-Sharer-User-Id") long userId)
             throws NotFoundException {
         log.info("Запрос бронирования " + bookingId);
         return bookingService.getBooking(bookingId, userId);

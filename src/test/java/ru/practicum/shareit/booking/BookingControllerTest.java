@@ -13,9 +13,7 @@ import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingDtoResponse;
 import ru.practicum.shareit.booking.misc.Status;
 import ru.practicum.shareit.item.dto.ItemDtoBooking;
-import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.user.dto.UserDtoBooking;
-import ru.practicum.shareit.user.dto.UserDto;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -37,43 +35,15 @@ class BookingControllerTest {
     @Autowired
     private MockMvc mockMvc;
     @Autowired
-    ObjectMapper objectMapper;
-    UserDto userDto;
-    ItemDto itemDto;
-    BookingDto bookingDto;
-    BookingDtoResponse bookingDtoResponse;
+    private ObjectMapper objectMapper;
+    private BookingDto bookingDto;
+    private BookingDtoResponse bookingDtoResponse;
 
     @BeforeEach
     void init() {
-        userDto = UserDto.builder()
-                .id(1L)
-                .name("user")
-                .email("user@test.ru")
-                .build();
-
-        bookingDto = BookingDto.builder()
-                .id(1L)
-                .start(LocalDateTime.now().plusHours(1))
-                .end(LocalDateTime.now().plusHours(5))
-                .itemId(1L)
-                .bookerId(1L)
-                .build();
-
-        itemDto = ItemDto.builder()
-                .id(1L)
-                .name("itemTest")
-                .description("itemTestDesc")
-                .available(true)
-                .build();
-
-        bookingDtoResponse = BookingDtoResponse.builder()
-                .id(1L)
-                .start(LocalDateTime.now().plusHours(1))
-                .end(LocalDateTime.now().plusHours(5))
-                .booker(new UserDtoBooking())
-                .status(Status.WAITING)
-                .item(new ItemDtoBooking())
-                .build();
+        bookingDto = new BookingDto(1L, LocalDateTime.now().plusHours(1), LocalDateTime.now().plusHours(5), 1L, 1L);
+        bookingDtoResponse = new BookingDtoResponse(1L, LocalDateTime.now().plusHours(1),
+                LocalDateTime.now().plusHours(5), new UserDtoBooking(), Status.WAITING, new ItemDtoBooking());
     }
 
     @Test

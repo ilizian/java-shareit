@@ -9,6 +9,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.dto.ItemRequestDtoResponse;
 import ru.practicum.shareit.request.model.ItemRequest;
@@ -51,7 +53,6 @@ class ItemRequestControllerTest {
                 .id(1L)
                 .description("itemRequestDescription")
                 .build();
-
     }
 
     @Test
@@ -66,7 +67,6 @@ class ItemRequestControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(itemRequestDtoResponse.getId()), Long.class))
                 .andExpect(jsonPath("$.description", is(itemRequestDtoResponse.getDescription())));
-
     }
 
     @Test
@@ -107,16 +107,20 @@ class ItemRequestControllerTest {
                 .andExpect(jsonPath("$.id", is(itemRequest.getId()), Long.class));
     }
 
-
-
-
-
-    /*
+    @Test
+    void getItemRequestByIdErrorTest() throws Exception {
+        when(itemRequestService.getItemRequestById(anyLong(), anyLong())).thenThrow(NotFoundException.class);
+        mvc.perform(get("/requests/10")
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-Sharer-User-Id", 1L)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+    }
 
     @Test
-    void createTestWhenBadRequest() throws Exception {
+    void addItemRequestErrorTest() throws Exception {
         when(itemRequestService.addItemRequest(anyLong(), any())).thenThrow(ValidationException.class);
-
         mvc.perform(post("/requests")
                         .content(objectMapper.writeValueAsString(itemRequestDto))
                         .characterEncoding(StandardCharsets.UTF_8)
@@ -125,22 +129,4 @@ class ItemRequestControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
     }
-
-
-
-
-
-
-    @Test
-    void getItemRequestByIdWhenNotFound() throws Exception {
-        when(itemRequestService.getItemRequestById(anyLong(), anyLong())).thenReturn(itemRequestDtoResp);
-        mvc.perform(get("/requests/99")
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .header("X-Sharer-User-Id", 1L)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound());
-    }
-
-     */
 }

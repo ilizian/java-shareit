@@ -11,7 +11,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.shareit.comment.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.user.dto.UserDto;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -34,22 +33,12 @@ public class ItemControllerTest {
     private MockMvc mockMvc;
     @Autowired
     private ObjectMapper objectMapper;
-    UserDto userDto;
-    ItemDto itemDto;
+    private ItemDto itemDto;
 
     @BeforeEach
     void init() {
-        itemDto = ItemDto.builder()
-                .id(1L)
-                .name("itemTest")
-                .description("itemTestDesc")
-                .available(true)
-                .build();
-        userDto = UserDto.builder()
-                .id(1L)
-                .name("user")
-                .email("user@test.ru")
-                .build();
+        itemDto = new ItemDto(1L, "itemTest", "itemTestDesc",
+                true, null, null, null, null);
     }
 
     @Test
