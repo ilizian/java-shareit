@@ -1,7 +1,6 @@
 package ru.practicum.shareit.comment;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import ru.practicum.shareit.comment.dto.CommentDto;
 import ru.practicum.shareit.user.model.User;
 
@@ -9,7 +8,6 @@ import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@WebMvcTest(CommentMapper.class)
 class CommentMapperTest {
     @Test
     void toCommentTest() {

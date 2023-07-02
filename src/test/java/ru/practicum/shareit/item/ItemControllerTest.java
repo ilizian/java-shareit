@@ -19,7 +19,7 @@ import java.util.List;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -52,6 +52,8 @@ public class ItemControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(itemDto.getId()), Long.class))
                 .andExpect(jsonPath("$.name", is(itemDto.getName())));
+        verify(itemService, times(1))
+                .getItem(1L, 1L);
     }
 
     @Test
@@ -66,6 +68,8 @@ public class ItemControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(itemDto.getId()), Long.class))
                 .andExpect(jsonPath("$.name", is(itemDto.getName())));
+        verify(itemService, times(1))
+                .addItem(itemDto, 1L);
     }
 
     @Test
@@ -79,6 +83,8 @@ public class ItemControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(itemDto.getId()), Long.class))
                 .andExpect(jsonPath("$.name", is(itemDto.getName())));
+        verify(itemService, times(1))
+                .updateItem(1L, itemDto, 1L);
     }
 
     @Test
@@ -93,6 +99,8 @@ public class ItemControllerTest {
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].id", is(itemDto.getId()), Long.class))
                 .andExpect(jsonPath("$[0].name", is(itemDto.getName())));
+        verify(itemService, times(1))
+                .getItemByUser(1L, 0, 100);
     }
 
     @Test
@@ -107,6 +115,8 @@ public class ItemControllerTest {
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].id", is(itemDto.getId()), Long.class))
                 .andExpect(jsonPath("$[0].name", is(itemDto.getName())));
+        verify(itemService, times(1))
+                .searchItems("\'itemTest\'", 0, 100);
     }
 
     @Test
@@ -126,5 +136,7 @@ public class ItemControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(commentDto.getId()), Long.class));
+        verify(itemService, times(1))
+                .addComment(1L, 1L, commentDto);
     }
 }

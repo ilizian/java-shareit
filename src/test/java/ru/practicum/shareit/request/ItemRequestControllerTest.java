@@ -22,7 +22,7 @@ import java.util.List;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -67,6 +67,8 @@ class ItemRequestControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(itemRequestDtoResponse.getId()), Long.class))
                 .andExpect(jsonPath("$.description", is(itemRequestDtoResponse.getDescription())));
+        verify(itemRequestService, times(1))
+                .addItemRequest(1L, itemRequestDto);
     }
 
     @Test
@@ -81,6 +83,8 @@ class ItemRequestControllerTest {
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].id", is(itemRequestDtoResponse.getId()), Long.class))
                 .andExpect(jsonPath("$[0].description", is(itemRequest.getDescription())));
+        verify(itemRequestService, times(1))
+                .getByUser(1L);
     }
 
     @Test
@@ -93,6 +97,8 @@ class ItemRequestControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)));
+        verify(itemRequestService, times(1))
+                .getAll(2L, 0, 100);
     }
 
     @Test
@@ -105,6 +111,8 @@ class ItemRequestControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(itemRequest.getId()), Long.class));
+        verify(itemRequestService, times(1))
+                .getItemRequestById(1L, 1L);
     }
 
     @Test

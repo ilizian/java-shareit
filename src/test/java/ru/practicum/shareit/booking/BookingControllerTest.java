@@ -22,7 +22,7 @@ import java.util.List;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -47,7 +47,7 @@ class BookingControllerTest {
     }
 
     @Test
-    void creatBookingTest() throws Exception {
+    void createBookingTest() throws Exception {
         when(bookingService.createBooking(anyLong(), any())).thenReturn(bookingDtoResponse);
         mockMvc.perform(post("/bookings")
                         .content(objectMapper.writeValueAsString(bookingDto))
@@ -57,6 +57,8 @@ class BookingControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(bookingDtoResponse.getId()), Long.class));
+        verify(bookingService, times(1))
+                .createBooking(1L, bookingDto);
     }
 
     @Test
@@ -69,6 +71,8 @@ class BookingControllerTest {
                         .header("X-Sharer-User-Id", 1L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(bookingDtoResponse.getId()), Long.class));
+        verify(bookingService, times(1))
+                .updateBooking(1L, 1L, true);
     }
 
     @Test
@@ -80,6 +84,8 @@ class BookingControllerTest {
                         .header("X-Sharer-User-Id", 1L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(bookingDtoResponse.getId()), Long.class));
+        verify(bookingService, times(1))
+                .getBooking(1L, 1L);
     }
 
     @Test
@@ -92,6 +98,8 @@ class BookingControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].id", is(bookingDtoResponse.getId()), Long.class));
+        verify(bookingService, times(1))
+                .getBookingsOfUser(1L, "ALL", 1, 1);
     }
 
     @Test
@@ -104,5 +112,18 @@ class BookingControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].id", is(bookingDtoResponse.getId()), Long.class));
+        verify(bookingService, times(1))
+                .getForOwner(1L, "ALL", 1, 1);
+    }
+
+    @Test
+    void badUrlTest() throws Exception {
+        when(bookingService.getForOwner(anyLong(), anyString(), anyInt(), anyInt())).thenReturn(List.of(bookingDtoResponse));
+        mockMvc.perform(get("/bookings/TEST?from=1&size=1&state='kkkk'")
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-Sharer-User-Id", 1L)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().is5xxServerError());
     }
 }

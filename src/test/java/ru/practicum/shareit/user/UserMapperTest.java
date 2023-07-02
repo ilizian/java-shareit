@@ -1,7 +1,6 @@
 package ru.practicum.shareit.user;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.UserDtoBooking;
 import ru.practicum.shareit.user.model.User;
@@ -9,7 +8,6 @@ import ru.practicum.shareit.user.model.User;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-@WebMvcTest(UserMapper.class)
 public class UserMapperTest {
 
     @Test

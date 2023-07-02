@@ -6,6 +6,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.ValidationException;
+import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.dto.ItemRequestDtoResponse;
 
 import javax.validation.constraints.Min;
@@ -30,9 +31,9 @@ public class ItemRequestController {
 
     @PostMapping
     public ItemRequestDtoResponse addItemRequest(@NotNull @RequestHeader("X-Sharer-User-Id") long userId,
-                                                 @RequestBody ItemRequestDtoResponse itemRequestDtoResponse)
+                                                 @RequestBody ItemRequestDto itemRequestDto)
             throws ValidationException, NotFoundException {
-        ItemRequestDtoResponse itemRequestDtoRes = itemRequestService.addItemRequest(userId, itemRequestDtoResponse);
+        ItemRequestDtoResponse itemRequestDtoRes = itemRequestService.addItemRequest(userId, itemRequestDto);
         log.info("Создание запроса пользователя с id " + userId);
         return itemRequestDtoRes;
     }

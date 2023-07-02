@@ -7,13 +7,17 @@ import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.item.ItemMapper;
+import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.storage.ItemStorage;
+import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.dto.ItemRequestDtoResponse;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.storage.UserStorage;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -29,18 +33,17 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     private final Sort sort = Sort.by(Sort.Direction.ASC, "created");
 
     @Override
-    public ItemRequestDtoResponse addItemRequest(long userId, ItemRequestDtoResponse itemRequestDtoResponse)
+    public ItemRequestDtoResponse addItemRequest(long userId, ItemRequestDto itemRequestDto)
             throws NotFoundException, ValidationException {
         User user = userStorage.findById(userId).orElseThrow(() ->
                 new NotFoundException("Ошибка. Невозможно получить пользователя с id  " + userId));
-        if (Objects.isNull(itemRequestDtoResponse.getDescription())) {
+        if (Objects.isNull(itemRequestDto.getDescription())) {
             throw new ValidationException("Ошибка. Описание запроса не может быть пустым");
         }
-        ItemRequest itemRequest = ItemRequestMapper.toItemRequest(itemRequestDtoResponse);
+        ItemRequest itemRequest = ItemRequestMapper.dtoToItemRequest(itemRequestDto);
         itemRequest.setRequestor(user);
         itemRequest.setCreated(LocalDateTime.now());
-        itemRequestStorage.save(itemRequest);
-        return ItemRequestMapper.toItemRequestDtoResponse(itemRequest);
+        return ItemRequestMapper.toItemRequestDtoResponse(itemRequestStorage.save(itemRequest));
     }
 
     @Override
@@ -50,8 +53,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         userStorage.findById(userId).orElseThrow(() ->
                 new NotFoundException("Ошибка. Невозможно получить пользователя с id  " + userId));
         ItemRequestDtoResponse itemRequestDtoResponse = ItemRequestMapper.toItemRequestDtoResponse(itemRequest);
-        setItems(itemRequestDtoResponse);
-        return itemRequestDtoResponse;
+        return  setItems(itemRequestDtoResponse);
     }
 
     @Override
@@ -60,11 +62,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
                 new NotFoundException("Ошибка. Невозможно получить пользователя с id  " + userId));
         List<ItemRequest> itemRequestList =
                 itemRequestStorage.findAllByRequestorIdOrderByCreatedAsc(userId);
-        return itemRequestList
-                .stream()
-                .map(ItemRequestMapper::toItemRequestDtoResponse)
-                .map(this::setItems)
-                .collect(Collectors.toList());
+        return setItemsList(itemRequestList);
     }
 
     @Override
@@ -74,11 +72,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         PageRequest pageRequest = PageRequest.of(from / size, size, sort);
         List<ItemRequest> itemRequestList = itemRequestStorage
                 .findAllByRequestorNotLikeOrderByCreatedAsc(user, pageRequest);
-        return itemRequestList
-                .stream()
-                .map(ItemRequestMapper::toItemRequestDtoResponse)
-                .map(this::setItems)
-                .collect(Collectors.toList());
+        return setItemsList(itemRequestList);
     }
 
     private ItemRequestDtoResponse setItems(ItemRequestDtoResponse itemRequestDtoResponse) {
@@ -87,5 +81,20 @@ public class ItemRequestServiceImpl implements ItemRequestService {
                 .map(ItemMapper::toItemDto)
                 .collect(Collectors.toList()));
         return itemRequestDtoResponse;
+    }
+
+    private List<ItemRequestDtoResponse> setItemsList(List<ItemRequest> itemRequestList) {
+        List<Item> items = itemStorage.findItemsByRequestNotNull();
+        List<ItemRequestDtoResponse> itemRequestDtoResponseList = new ArrayList<>();
+        for (ItemRequest itemRequest : itemRequestList) {
+            ItemRequestDtoResponse itemRequestDtoResponse = ItemRequestMapper.toItemRequestDtoResponse(itemRequest);
+            if (items.size() > 0) {
+                List<ItemDto> itemsReq = items.stream().filter(item -> item.getRequest().getId()
+                        .equals(itemRequest.getId())).map(ItemMapper::toItemDto).collect(Collectors.toList());
+                itemRequestDtoResponse.setItems(itemsReq);
+            }
+            itemRequestDtoResponseList.add(itemRequestDtoResponse);
+        }
+        return itemRequestDtoResponseList;
     }
 }

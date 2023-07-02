@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.ValidationException;
+import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.dto.ItemRequestDtoResponse;
 import ru.practicum.shareit.user.UserController;
 import ru.practicum.shareit.user.dto.UserDto;
@@ -22,54 +23,53 @@ class ItemRequestServiceImplTest {
     @Autowired
     private ItemRequestController itemRequestController;
     private UserDto userDto;
-    private ItemRequestDtoResponse itemRequestDtoResponse;
+    private ItemRequestDto itemRequestDto;
 
     @BeforeEach
     void init() {
         userDto = new UserDto(1L, "user", "user@test.ru");
-        itemRequestDtoResponse = new ItemRequestDtoResponse(1L, "itemReqTest",
-                LocalDateTime.now(), null);
+        itemRequestDto = new ItemRequestDto(1L, "itemReqTest", LocalDateTime.now());
     }
 
     @Test
     void addItemRequestTest() throws ValidationException, NotFoundException {
         UserDto user = userController.addUser(userDto);
-        ItemRequestDtoResponse itemRequest = itemRequestController.addItemRequest(user.getId(), itemRequestDtoResponse);
+        ItemRequestDtoResponse itemRequest = itemRequestController.addItemRequest(user.getId(), itemRequestDto);
         assertEquals(1L, itemRequestController.getItemRequestById(itemRequest.getId(), user.getId()).getId());
     }
 
     @Test
     void addItemRequestDescErrorTest() throws ValidationException {
         userController.addUser(userDto);
-        itemRequestDtoResponse.setDescription(null);
+        itemRequestDto.setDescription(null);
         assertThrows(ValidationException.class, () -> itemRequestController.addItemRequest(1L,
-                itemRequestDtoResponse));
+                itemRequestDto));
     }
 
     @Test
     void addItemRequestErrorTest() {
         assertThrows(NotFoundException.class, () -> itemRequestController.addItemRequest(99L,
-                itemRequestDtoResponse));
+                itemRequestDto));
     }
 
     @Test
     void getByUserTest() throws ValidationException, NotFoundException {
         UserDto user = userController.addUser(userDto);
-        itemRequestController.addItemRequest(user.getId(), itemRequestDtoResponse);
+        itemRequestController.addItemRequest(user.getId(), itemRequestDto);
         assertEquals(1, itemRequestController.getByUser(user.getId()).size());
     }
 
     @Test
     void getByUserErrorTest() throws ValidationException, NotFoundException {
         UserDto user = userController.addUser(userDto);
-        itemRequestController.addItemRequest(user.getId(), itemRequestDtoResponse);
+        itemRequestController.addItemRequest(user.getId(), itemRequestDto);
         assertThrows(NotFoundException.class, () -> itemRequestController.getByUser(99L));
     }
 
     @Test
     void getAllTest() throws ValidationException, NotFoundException {
         UserDto user = userController.addUser(userDto);
-        itemRequestController.addItemRequest(user.getId(), itemRequestDtoResponse);
+        itemRequestController.addItemRequest(user.getId(), itemRequestDto);
         assertEquals(0, itemRequestController.getAll(user.getId(), 0, 10).size());
         UserDto user2 = userController.addUser(UserDto.builder().name("user2").email("user2@test.ru").build());
         assertEquals(1, itemRequestController.getAll(user2.getId(), 0, 10).size());
@@ -78,21 +78,21 @@ class ItemRequestServiceImplTest {
     @Test
     void getAllErrorTest() throws ValidationException, NotFoundException {
         UserDto user = userController.addUser(userDto);
-        itemRequestController.addItemRequest(user.getId(), itemRequestDtoResponse);
+        itemRequestController.addItemRequest(user.getId(), itemRequestDto);
         assertThrows(NotFoundException.class, () -> itemRequestController.getAll(99L, 0, 10));
     }
 
     @Test
     void getItemRequestByIdTest() throws ValidationException, NotFoundException {
         UserDto user = userController.addUser(userDto);
-        ItemRequestDtoResponse itemRequest = itemRequestController.addItemRequest(user.getId(), itemRequestDtoResponse);
+        ItemRequestDtoResponse itemRequest = itemRequestController.addItemRequest(user.getId(), itemRequestDto);
         assertEquals(1L, itemRequestController.getItemRequestById(itemRequest.getId(), user.getId()).getId());
     }
 
     @Test
     void getItemRequestByIdErrorIdUserTest() throws ValidationException, NotFoundException {
         UserDto user = userController.addUser(userDto);
-        ItemRequestDtoResponse itemRequest = itemRequestController.addItemRequest(user.getId(), itemRequestDtoResponse);
+        ItemRequestDtoResponse itemRequest = itemRequestController.addItemRequest(user.getId(), itemRequestDto);
         assertThrows(NotFoundException.class, () -> itemRequestController
                 .getItemRequestById(itemRequest.getId(), 99L));
     }
@@ -100,7 +100,7 @@ class ItemRequestServiceImplTest {
     @Test
     void getItemRequestByIdErrorIdItemRequestTest() throws ValidationException, NotFoundException {
         UserDto user = userController.addUser(userDto);
-        itemRequestController.addItemRequest(user.getId(), itemRequestDtoResponse);
+        itemRequestController.addItemRequest(user.getId(), itemRequestDto);
         assertThrows(NotFoundException.class, () -> itemRequestController
                 .getItemRequestById(99L, userDto.getId()));
     }

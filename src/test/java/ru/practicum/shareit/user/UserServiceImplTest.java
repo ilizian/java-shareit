@@ -28,7 +28,7 @@ public class UserServiceImplTest {
     private UserStorage userStorage;
     @InjectMocks
     private UserServiceImpl userService;
-    List<User> users = new ArrayList<>();
+    private List<User> users = new ArrayList<>();
 
     @BeforeEach
     void init() {

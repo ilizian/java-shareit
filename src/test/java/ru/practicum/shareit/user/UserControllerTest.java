@@ -17,8 +17,7 @@ import java.util.List;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -60,10 +59,12 @@ class UserControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(userDto.getId()), Long.class))
                 .andExpect(jsonPath("$.name", is(userDto.getName())));
+        verify(userService, times(1))
+                .addUser(userDto);
     }
 
     @Test
-    public void addUserErrorEmailTest() throws Exception {
+    void addUserErrorEmailTest() throws Exception {
         when(userService.addUser(any())).thenReturn(userDtoError);
         mockMvc.perform(post("/users")
                         .content(objectMapper.writeValueAsString(userDtoError))
@@ -85,6 +86,8 @@ class UserControllerTest {
                 .andExpect(jsonPath("$[0].id", is(userDto.getId()), Long.class))
                 .andExpect(jsonPath("$[0].name", is(userDto.getName())))
                 .andExpect(jsonPath("$[0].email", is(userDto.getEmail())));
+        verify(userService, times(1))
+                .getUsers();
     }
 
     @Test
@@ -98,6 +101,8 @@ class UserControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(userDto.getId()), Long.class))
                 .andExpect(jsonPath("$.name", is(userDto.getName())));
+        verify(userService, times(1))
+                .getUserById(1L);
     }
 
     @Test
@@ -110,6 +115,8 @@ class UserControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(userDto.getId()), Long.class))
                 .andExpect(jsonPath("$.name", is(userDto.getName())));
+        verify(userService, times(1))
+                .updateUser(userDto, 1L);
     }
 
     @Test
