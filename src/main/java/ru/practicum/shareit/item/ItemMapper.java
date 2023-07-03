@@ -24,7 +24,8 @@ public class ItemMapper {
                 item.getAvailable(),
                 null,
                 null,
-                new ArrayList<>());
+                new ArrayList<>(),
+                item.getRequest() != null ? item.getRequest().getId() : null);
     }
 
     public static ItemDtoBooking toItemDtoBooking(Item item) {

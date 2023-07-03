@@ -2,6 +2,7 @@ package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.comment.dto.CommentDto;
 import ru.practicum.shareit.exception.NotFoundException;
@@ -9,13 +10,15 @@ import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.item.dto.ItemDto;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @RestController
 @RequestMapping(path = "/items")
 @RequiredArgsConstructor
 @Slf4j
+@Validated
 public class ItemController {
     private final ItemService itemService;
 
@@ -36,21 +39,25 @@ public class ItemController {
     @PatchMapping("{itemId}")
     public ItemDto updateItem(@PathVariable long itemId,
                               @RequestBody ItemDto itemDto,
-                              @NotBlank @RequestHeader("X-Sharer-User-Id") long userId) throws NotFoundException {
+                              @NotNull @RequestHeader("X-Sharer-User-Id") long userId) throws NotFoundException {
         log.info("Обновление вещи по id " + itemId);
         return itemService.updateItem(itemId, itemDto, userId);
     }
 
     @GetMapping
-    public List<ItemDto> getItems(@RequestHeader("X-Sharer-User-Id") long userId) throws NotFoundException {
+    public List<ItemDto> getItemByUser(@RequestHeader("X-Sharer-User-Id") long userId,
+                                  @RequestParam(defaultValue = "0") @Min(0) int from,
+                                  @RequestParam(defaultValue = "100") @Min(1) int size) throws NotFoundException {
         log.info("Запрос списка вещей пользователя с id " + userId);
-        return itemService.getItems(userId);
+        return itemService.getItemByUser(userId, from, size);
     }
 
     @GetMapping("/search")
-    public List<ItemDto> searchItems(@RequestParam String text) throws NotFoundException {
+    public List<ItemDto> searchItems(@RequestParam String text,
+                                     @RequestParam(defaultValue = "0") @Min(0) int from,
+                                     @RequestParam(defaultValue = "100") @Min(1) int size) throws NotFoundException {
         log.info("Поиск по фразе:  " + text);
-        return itemService.searchItems(text);
+        return itemService.searchItems(text, from, size);
     }
 
     @PostMapping("{itemId}/comment")

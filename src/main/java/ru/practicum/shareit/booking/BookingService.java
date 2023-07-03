@@ -16,7 +16,8 @@ public interface BookingService {
 
     BookingDtoResponse createBooking(long userId, BookingDto bookingDto) throws NotFoundException, ValidationException;
 
-    Collection<BookingDtoResponse> getBookingsOfUser(long userId, String state) throws NotFoundException, ValidationException;
+    Collection<BookingDtoResponse> getBookingsOfUser(long userId, String state, int from, int size)
+            throws NotFoundException, ValidationException;
 
-    List<BookingDtoResponse> getForOwner(long userId, String state) throws NotFoundException;
+    List<BookingDtoResponse> getForOwner(long userId, String state, int from, int size) throws NotFoundException;
 }

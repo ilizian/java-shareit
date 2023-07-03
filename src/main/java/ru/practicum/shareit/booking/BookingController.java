@@ -2,6 +2,7 @@ package ru.practicum.shareit.booking;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingDtoResponse;
@@ -9,6 +10,7 @@ import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.ValidationException;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Min;
 import java.util.Collection;
 
 
@@ -16,11 +18,12 @@ import java.util.Collection;
 @RequestMapping(path = "/bookings")
 @RequiredArgsConstructor
 @Slf4j
+@Validated
 public class BookingController {
     private final BookingService bookingService;
 
     @GetMapping("{bookingId}")
-    public BookingDtoResponse getBooking(@PathVariable int bookingId, @RequestHeader("X-Sharer-User-Id") long userId)
+    public BookingDtoResponse getBooking(@PathVariable long bookingId, @RequestHeader("X-Sharer-User-Id") long userId)
             throws NotFoundException {
         log.info("Запрос бронирования " + bookingId);
         return bookingService.getBooking(bookingId, userId);
@@ -28,10 +31,12 @@ public class BookingController {
 
     @GetMapping
     public Collection<BookingDtoResponse> getBookingsOfUser(@RequestHeader("X-Sharer-User-Id") long userId,
-                                                            @RequestParam(defaultValue = "ALL") String state) throws
-            NotFoundException, ValidationException {
+                                                            @RequestParam(defaultValue = "ALL") String state,
+                                                            @RequestParam(defaultValue = "0") @Min(0) int from,
+                                                            @RequestParam(defaultValue = "100") @Min(1) int size)
+            throws NotFoundException, ValidationException {
         log.info("Запрос бронирования по пользователю " + userId);
-        return bookingService.getBookingsOfUser(userId, state);
+        return bookingService.getBookingsOfUser(userId, state, from, size);
     }
 
     @PostMapping
@@ -52,9 +57,11 @@ public class BookingController {
 
     @GetMapping("/owner")
     public Collection<BookingDtoResponse> getBookedItemOfOwner(@RequestHeader("X-Sharer-User-Id") long userId,
-                                                               @RequestParam(defaultValue = "ALL") String state) throws
-            NotFoundException {
+                                                               @RequestParam(defaultValue = "ALL") String state,
+                                                               @RequestParam(defaultValue = "0") @Min(0) int from,
+                                                               @RequestParam(defaultValue = "100") @Min(1) int size)
+            throws NotFoundException {
         log.info("Запрос бронированных предметов пользователя " + userId);
-        return bookingService.getForOwner(userId, state);
+        return bookingService.getForOwner(userId, state, from, size);
     }
 }

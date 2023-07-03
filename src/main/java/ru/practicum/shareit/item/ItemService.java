@@ -15,11 +15,9 @@ public interface ItemService {
 
     ItemDto updateItem(long itemId, ItemDto itemDto, long userId) throws NotFoundException;
 
-    List<ItemDto> getItems(long userId) throws NotFoundException;
+    List<ItemDto> searchItems(String text, int from, int size) throws NotFoundException;
 
-    List<ItemDto> searchItems(String text) throws NotFoundException;
-
-    List<ItemDto> getItemByUser(Long userId) throws NotFoundException;
+    List<ItemDto> getItemByUser(Long userId, int from, int size) throws NotFoundException;
 
     CommentDto addComment(Long userId, Long itemId, CommentDto commentDto) throws ValidationException, NotFoundException;
 }
