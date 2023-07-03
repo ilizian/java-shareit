@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.ValidationException;
+import ru.practicum.shareit.item.ItemController;
+import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.dto.ItemRequestDtoResponse;
 import ru.practicum.shareit.user.UserController;
@@ -22,6 +24,8 @@ class ItemRequestServiceImplTest {
     private UserController userController;
     @Autowired
     private ItemRequestController itemRequestController;
+    @Autowired
+    private ItemController itemController;
     private UserDto userDto;
     private ItemRequestDto itemRequestDto;
 
@@ -103,5 +107,18 @@ class ItemRequestServiceImplTest {
         itemRequestController.addItemRequest(user.getId(), itemRequestDto);
         assertThrows(NotFoundException.class, () -> itemRequestController
                 .getItemRequestById(99L, userDto.getId()));
+    }
+
+    @Test
+    void setItemsInItemRequestsTest() throws ValidationException, NotFoundException {
+        UserDto user1 = userController.addUser(userDto);
+        ItemDto itemDto1 = new ItemDto(1L, "itemTest1", "itemDescTest1",
+                true, null, null, null, 1L);
+        ItemDto itemDto2 = new ItemDto(2L, "itemTest2", "itemDescTest2",
+                true, null, null, null, 1L);
+        itemController.addItem(itemDto1, user1.getId());
+        itemController.addItem(itemDto2, user1.getId());
+        itemRequestController.addItemRequest(user1.getId(), itemRequestDto);
+        assertEquals(itemRequestController.getByUser(user1.getId()).size(), 1);
     }
 }

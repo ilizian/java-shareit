@@ -17,9 +17,7 @@ import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.storage.UserStorage;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -53,7 +51,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         userStorage.findById(userId).orElseThrow(() ->
                 new NotFoundException("Ошибка. Невозможно получить пользователя с id  " + userId));
         ItemRequestDtoResponse itemRequestDtoResponse = ItemRequestMapper.toItemRequestDtoResponse(itemRequest);
-        return  setItems(itemRequestDtoResponse);
+        return setItems(itemRequestDtoResponse);
     }
 
     @Override
@@ -86,12 +84,23 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     private List<ItemRequestDtoResponse> setItemsList(List<ItemRequest> itemRequestList) {
         List<Item> items = itemStorage.findItemsByRequestNotNull();
         List<ItemRequestDtoResponse> itemRequestDtoResponseList = new ArrayList<>();
+        Map<Long, List<ItemDto>> itemListMap = new HashMap<>();
+        List<ItemDto> itemList = new ArrayList<>();
+        for (Item item : items) {
+            if (!itemListMap.containsKey(item.getRequest().getId())) {
+                itemListMap.put(item.getRequest().getId(), itemList);
+            }
+            ItemDto itemDto = ItemMapper.toItemDto(item);
+            itemList = itemListMap.get(item.getRequest().getId());
+            itemList.add(itemDto);
+            itemListMap.put(item.getRequest().getId(), itemList);
+        }
         for (ItemRequest itemRequest : itemRequestList) {
             ItemRequestDtoResponse itemRequestDtoResponse = ItemRequestMapper.toItemRequestDtoResponse(itemRequest);
-            if (items.size() > 0) {
-                List<ItemDto> itemsReq = items.stream().filter(item -> item.getRequest().getId()
-                        .equals(itemRequest.getId())).map(ItemMapper::toItemDto).collect(Collectors.toList());
-                itemRequestDtoResponse.setItems(itemsReq);
+            if (itemListMap.size() > 0) {
+                if (itemListMap.containsKey(itemRequest.getId())) {
+                    itemRequestDtoResponse.setItems(itemListMap.get(itemRequest.getId()));
+                }
             }
             itemRequestDtoResponseList.add(itemRequestDtoResponse);
         }
