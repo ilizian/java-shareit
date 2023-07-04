@@ -67,7 +67,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     public List<ItemRequestDtoResponse> getAll(long userId, int from, int size) throws NotFoundException {
         User user = userStorage.findById(userId).orElseThrow(() ->
                 new NotFoundException("Ошибка. Невозможно получить пользователя с id  " + userId));
-        PageRequest pageRequest = PageRequest.of(from / size, size, sort);
+        PageRequest pageRequest = PageRequest.of(from, size, sort);
         List<ItemRequest> itemRequestList = itemRequestStorage
                 .findAllByRequestorNotLikeOrderByCreatedAsc(user, pageRequest);
         return setItemsList(itemRequestList);
