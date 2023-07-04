@@ -154,7 +154,7 @@ public class BookingServiceTest {
         assertEquals(bookingService.getBookingsOfUser(userDto2.getId(), "ALL", 0, 10).size(), 2);
         assertEquals(bookingService.getBookingsOfUser(userDto2.getId(), "PAST", 0, 10).size(), 0);
         assertEquals(bookingService.getBookingsOfUser(userDto2.getId(), "WAITING", 0, 10).size(), 1);
-        assertEquals(bookingService.getBookingsOfUser(userDto2.getId(), "FUTURE", 0, 10).size(), 1);
+        assertEquals(bookingService.getBookingsOfUser(userDto2.getId(), "FUTURE", 0, 10).size(), 2);
         assertEquals(bookingService.getBookingsOfUser(userDto2.getId(), "REJECTED", 0, 10).size(), 0);
     }
 
@@ -177,7 +177,7 @@ public class BookingServiceTest {
         assertEquals(bookingService.getForOwner(userDto1.getId(), "CURRENT", 0, 10).size(), 0);
         assertEquals(bookingService.getForOwner(userDto1.getId(), "ALL", 0, 10).size(), 2);
         assertEquals(bookingService.getForOwner(userDto1.getId(), "PAST", 0, 10).size(), 0);
-        assertEquals(bookingService.getForOwner(userDto1.getId(), "FUTURE", 0, 10).size(), 1);
+        assertEquals(bookingService.getForOwner(userDto1.getId(), "FUTURE", 0, 10).size(), 2);
         assertEquals(bookingService.getForOwner(userDto1.getId(), "WAITING", 0, 10).size(), 1);
         assertEquals(bookingService.getForOwner(userDto1.getId(), "REJECTED", 0, 10).size(), 0);
     }
