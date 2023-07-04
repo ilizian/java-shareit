@@ -1,6 +1,7 @@
 package ru.practicum.shareit.request;
 
 import org.junit.jupiter.api.Test;
+import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.dto.ItemRequestDtoResponse;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.model.User;
@@ -39,5 +40,19 @@ public class ItemRequestMapperTest {
         assertEquals(itemRequest.getId(), itemRequestDtoResponse.getId());
         assertEquals(itemRequest.getDescription(), itemRequestDtoResponse.getDescription());
         assertEquals(itemRequest.getCreated(), itemRequestDtoResponse.getCreated());
+    }
+
+    @Test
+    void dtoToItemRequestTest() {
+        ItemRequestDto itemRequestDto = ItemRequestDto.builder()
+                .id(1L)
+                .description("testDesc")
+                .created(LocalDateTime.now())
+                .build();
+        ItemRequest itemRequest = ItemRequestMapper.dtoToItemRequest(itemRequestDto);
+        assertNotNull(itemRequest);
+        assertEquals(itemRequest.getId(), itemRequestDto.getId());
+        assertEquals(itemRequest.getDescription(), itemRequestDto.getDescription());
+        assertEquals(itemRequest.getCreated(), itemRequestDto.getCreated());
     }
 }
