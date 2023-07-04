@@ -1,11 +1,11 @@
 spring:
   datasource:
-    driverClassName: org.postgresql.Driver
-    #driverClassName: org.h2.Driver
+    #driverClassName: org.postgresql.Driver
+    driverClassName: org.h2.Driver
     password: test
     username: test
-    url: jdbc:postgresql://localhost:5432/shareit
-    #url: jdbc:h2:mem:shareit
+    #url: jdbc:postgresql://localhost:5432/shareit
+    url: jdbc:h2:mem:shareit
 
   config:
     activate:
@@ -16,6 +16,7 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQL10Dialect
         format_sql: true
+        show-sql: true
         enable_lazy_load_no_trans: true
     hibernate:
       ddl-auto: none
