@@ -32,7 +32,6 @@ public class ItemServiceTest {
     private final ItemDto itemDto = new ItemDto(1L, "itemTest", "itemDescTest",
             true, null, null, null, null);
 
-
     @Test
     void addItemTest() throws ValidationException, NotFoundException {
         userService.addUser(userDto);
@@ -125,6 +124,7 @@ public class ItemServiceTest {
         itemService.addItem(itemDto1, 1L);
         assertEquals(0, itemService.searchItems("", 0, 10).size());
     }
+
     @Test
     void getItemByUserTest() throws ValidationException, NotFoundException {
         userService.addUser(userDto);
