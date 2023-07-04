@@ -8,7 +8,7 @@ import ru.practicum.shareit.user.model.User;
 import java.util.List;
 
 public interface ItemRequestStorage extends JpaRepository<ItemRequest, Long> {
-    List<ItemRequest> findAllByRequestorNotLikeOrderByCreatedAsc(User user, Pageable pageable);
+    List<ItemRequest> findAllByRequestorIsNot(User user, Pageable pageable);
 
     List<ItemRequest> findAllByRequestorIdOrderByCreatedAsc(Long userId);
 

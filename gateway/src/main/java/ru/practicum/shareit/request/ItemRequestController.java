@@ -35,8 +35,8 @@ public class ItemRequestController {
 
     @GetMapping("/all")
     public ResponseEntity<Object> getAll(@RequestHeader("X-Sharer-User-Id") long userId,
-                                         @RequestParam(defaultValue = "0") @Min(0) int from,
-                                         @RequestParam(defaultValue = "100") @Min(1) int size) {
+                                         @RequestParam(value = "from", defaultValue = "0") @Min(0) int from,
+                                         @RequestParam(value = "size", defaultValue = "100") @Min(1) int size) {
         log.info("Запрос запросов пользователя с id " + userId);
         return itemRequestClient.getAll(userId, from, size);
     }
