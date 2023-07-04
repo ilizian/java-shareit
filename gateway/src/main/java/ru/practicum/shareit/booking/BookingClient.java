@@ -45,7 +45,7 @@ public class BookingClient extends BaseClient {
         return get("/" + bookingId, userId);
     }
 
-    public ResponseEntity<Object> updateBooking(Long bookingId, Long userId, Boolean approved) {
+    public ResponseEntity<Object> updateBooking(Long bookingId, long userId, Boolean approved) {
         return patch("/" + bookingId + "?approved=" + approved, userId);
     }
 
