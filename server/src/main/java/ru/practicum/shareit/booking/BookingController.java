@@ -49,7 +49,7 @@ public class BookingController {
 
     @PatchMapping("{bookingId}")
     public BookingDtoResponse updateBooking(@RequestHeader("X-Sharer-User-Id") long userId,
-                                            @RequestParam boolean approved, @PathVariable long bookingId) throws
+                                            @PathVariable long bookingId, @RequestParam boolean approved) throws
             ValidationException, NotFoundException {
         log.info("Обновление бронирования " + bookingId);
         return bookingService.updateBooking(userId, bookingId, approved);
