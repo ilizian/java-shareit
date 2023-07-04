@@ -20,6 +20,7 @@ services:
     depends_on:
       - db
     environment:
+      - SPRING_DRIVER_CLASS_NAME=org.postgresql.Driver
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/shareit
       - SPRING_DATASOURCE_USER=test
       - SPRING_DATASOURCE_PASSWORD=test
